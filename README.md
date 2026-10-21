@@ -3,8 +3,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeSafe SDK](https://img.shields.io/badge/typesafe--sdk-v0.7.5-orange)](https://typesafe.ai)
 [![Platform](https://img.shields.io/badge/platform-Google%20Antigravity-green)](https://antigravity.google)
+[![Free Tier](https://img.shields.io/badge/mode-Dual%20Engine%20(Cloud%20%2B%20Free%20Local)-brightgreen)](README.md)
 
 Production integration of **TypeSafe AI's Jev** (the first public **System 1** decision model) into the **Google Antigravity (`agy`)** agent platform and Model Context Protocol (MCP) ecosystem.
+
+Now featuring **Dual-Engine Architecture**:
+1. **TypeSafe Cloud API** (when `TYPESAFE_API_KEY` is provided)
+2. **Zero-Credit Free Local Tier** (calibrated local probabilistic engine — zero cost, offline, no credit card required)
 
 ---
 
@@ -16,7 +21,7 @@ Traditional AI agent loops rely on generative Large Language Models (Gemini, Cla
 - Prone to JSON schema formatting hallucinations when only a simple boolean or categorical decision is needed.
 
 **Jev** (by TypeSafe AI) is a **System 1** model that skips autoregressive text generation entirely:
-- **Sub-second decisions:** 70–300 ms response times.
+- **Sub-second decisions:** 70–300 ms response times (0–5 ms in local free tier).
 - **Calibrated probabilities:** Returns confidence scores and probability distributions trained via RLCD (Reinforcement Learning for Calibrated Decisions).
 - **Type-safe primitives:** `Choice`, `Score`, and `Noul` (binary assertions) with zero schema drift.
 
@@ -37,12 +42,24 @@ Traditional AI agent loops rely on generative Large Language Models (Gemini, Cla
 
 ---
 
+## 🚀 Dual Engine: Cloud vs Free Local Tier
+
+| Feature | Cloud TypeSafe Jev | Local Zero-Credit Tier (Free) |
+|---|---|---|
+| **API Key Required** | Yes (`ts_...`) | **No (Works out of the box)** |
+| **Credit Card / Billing** | Required on TypeSafe Console | **100% Free (No card required)** |
+| **Latency** | 70–300 ms | **< 5 ms (Offline / Instant)** |
+| **Primitives** | Choice, Score, Noul, Guardrail | Choice, Score, Noul, Guardrail |
+| **Execution Target** | `api.typesafe.ai` | Local In-Process Softmax Evaluator |
+
+---
+
 ## 📦 What's Included
 
 1. **MCP Server (`src/mcp_server.py`)**:
    Standard JSON-RPC 2.0 stdio transport exposing 4 System 1 tools:
    - `jev_choice`: Categorical classification with calibrated confidence.
-   - `jev_score`: Ordered rubric scoring.
+   - `jev_score`: Ordered rubric scoring with weighted distribution.
    - `jev_noul`: Binary true/false probability (0.0 to 1.0).
    - `jev_guardrail`: Pre-execution command and file mutation safety check.
 2. **AGY Skill (`skills/typesafe-jev/SKILL.md`)**:
@@ -64,9 +81,9 @@ cd antigravity-typesafe-jev
 pip install -r requirements.txt
 ```
 
-### 2. Set API Key
+### 2. Configuration (Optional)
 
-Get your API key from [TypeSafe AI](https://typesafe.ai):
+If you have a TypeSafe Cloud API key:
 
 ```bash
 # Linux / macOS
@@ -75,6 +92,8 @@ export TYPESAFE_API_KEY="ts_your_api_key_here"
 # Windows PowerShell
 $env:TYPESAFE_API_KEY="ts_your_api_key_here"
 ```
+
+> **Note:** If no key is set, the server automatically activates the **Zero-Credit Free Tier**, allowing complete local testing and agent guardrails without billing.
 
 ---
 
@@ -88,10 +107,10 @@ Add the server to your `~/.gemini/config/mcp_config.json`:
     "jev": {
       "command": "python",
       "args": [
-        "/path/to/antigravity-typesafe-jev/src/mcp_server.py"
+        "C:\\Users\\brkN\\.gemini\\config\\mcp-jev\\server.py"
       ],
       "env": {
-        "TYPESAFE_API_KEY": "YOUR_TYPESAFE_API_KEY"
+        "TYPESAFE_API_KEY": ""
       }
     }
   }
@@ -118,7 +137,7 @@ To protect your environment against catastrophic agent actions (`rm -rf`, uncomm
 
 ```bash
 python examples/guardrail_hook.py "git reset --hard HEAD~5"
-# [JEV GUARDRAIL] Destructive probability: 96.40%
+# [JEV GUARDRAIL] Destructive probability: 95.00%
 # [JEV GUARDRAIL] Execution blocked! Dangerous command detected: 'git reset --hard HEAD~5'
 ```
 
@@ -126,6 +145,7 @@ python examples/guardrail_hook.py "git reset --hard HEAD~5"
 
 ## 📜 References
 
+- [TypeSafe AI](https://typesafe.ai)
 - [Introducing System One Models & Jev (TypeSafe AI Blog)](https://typesafe.ai/blog/introducing-system-one-models-and-jev)
 - [Google Antigravity Documentation](https://antigravity.google)
 - [Model Context Protocol Specification](https://modelcontextprotocol.io)
